@@ -22,7 +22,13 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
+/**
+ * Every recipe will get wrapped around by this class to enable Experience Crafting functionality
+ */
 public class WrappedRecipe implements IRecipe {
+	/**
+	 * Contains the mappings of items and minimum max XP levels
+	 */
 	public static Map<Item, Integer> itemXpRecipeMap = new HashMap<Item, Integer>() {
 		{
 			for (Object itemObject : Item.itemRegistry) {
@@ -80,8 +86,15 @@ public class WrappedRecipe implements IRecipe {
 		}
 	};
 
+	/**
+	 * The recipe we are wrapping around
+	 */
 	private IRecipe wrappingRecipe;
 
+	/**
+	 * Constructs a WrappedRecipe wrapping around the given recipe
+	 * @param wrappingRecipe The recipe to wrap around
+	 */
 	public WrappedRecipe(IRecipe wrappingRecipe) {
 		this.wrappingRecipe = wrappingRecipe;
 	}
@@ -90,7 +103,7 @@ public class WrappedRecipe implements IRecipe {
 	public boolean matches(InventoryCrafting inventoryCrafting, World world) {
 		EntityPlayer player = findPlayer(inventoryCrafting);
 		int playerMaxExpLevel = ExperienceCraftingPlayerProperties.getMaxExperienceLevel(player);
-		return this.wrappingRecipe.matches(inventoryCrafting, world) && (player == null || playerMaxExpLevel >= itemXpRecipeMap.get(this.getCraftingResult(inventoryCrafting).getItem()) || player.capabilities.isCreativeMode);
+		return this.wrappingRecipe.matches(inventoryCrafting, world) && (player == null || player.capabilities.isCreativeMode || playerMaxExpLevel >= itemXpRecipeMap.get(this.getCraftingResult(inventoryCrafting).getItem()));
 	}
 
 	@Override
@@ -113,12 +126,17 @@ public class WrappedRecipe implements IRecipe {
 		return this.wrappingRecipe.getRemainingItems(inventoryCrafting);
 	}
 
-	private static EntityPlayer findPlayer(InventoryCrafting inv) {
+	/**
+	 * Finds the player in the given crafting inventory
+	 * @param inventoryCrafting The crafting inventory to find the player in
+	 * @return The player in the given crafting inventory
+	 */
+	private static EntityPlayer findPlayer(InventoryCrafting inventoryCrafting) {
 		try {
 			Field eventHandlerField = ReflectionHelper.findField(InventoryCrafting.class, "eventHandler", "field_70465_c");
 			Field containerPlayerPlayerField = ReflectionHelper.findField(ContainerPlayer.class, "thePlayer", "field_82862_h");
 			Field slotCraftingPlayerField = ReflectionHelper.findField(SlotCrafting.class, "thePlayer", "field_75238_b");
-			Container container = (Container) eventHandlerField.get(inv);
+			Container container = (Container) eventHandlerField.get(inventoryCrafting);
 			if (container instanceof ContainerPlayer)
 				return (EntityPlayer) containerPlayerPlayerField.get(container);
 			else if (container instanceof ContainerWorkbench)
@@ -129,5 +147,9 @@ public class WrappedRecipe implements IRecipe {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public static void addItemMinXPLevelMapping(Item item, int minXPLevel) {
+		itemXpRecipeMap.put(item, minXPLevel);
 	}
 }
