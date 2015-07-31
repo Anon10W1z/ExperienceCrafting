@@ -6,38 +6,74 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 
+/**
+ * The extended player properties of Experience Crafting
+ */
 public class ExperienceCraftingPlayerProperties implements IExtendedEntityProperties {
+	/**
+	 * The name of the properties
+	 */
+	public static final String PROPERTIES_NAME = "EXPERIENCE_CRAFTING_PROPERTIES";
+	
+	/**
+	 * The player these properties are attached to
+	 */
 	public EntityPlayer player;
+	/**
+	 * The max experience level the player has attained
+	 */
 	public int maxExperienceLevel = 0;
 	
+	/**
+	 * Saves the max experience level to NBT
+	 * @param nbtTagCompound The NBT tag compound to save the max experience level to
+	 */
 	@Override
 	public void saveNBTData(NBTTagCompound nbtTagCompound) {
-		nbtTagCompound.setInteger("MAX_LEVEL", this.maxExperienceLevel);
+		nbtTagCompound.setInteger("HighestXpLevel", this.maxExperienceLevel);
 	}
 
+	/**
+	 * Loads the max experience level from NBT
+	 * @param nbtTagCompound The NBT tag compound to load the max experience level from
+	 */
 	@Override
 	public void loadNBTData(NBTTagCompound nbtTagCompound) {
-		this.maxExperienceLevel = nbtTagCompound.getInteger("MAX_LEVEL");
+		this.maxExperienceLevel = nbtTagCompound.getInteger("HighestXpLevel");
 	}
 
 	@Override
 	public void init(Entity entity, World world) {
-
+		//do nothing
 	}
 	
+	/**
+	 * Updates the max experience level for the given player
+	 * @param player The player to update the max experience for
+	 */
 	public static void updateMaxExperienceLevel(EntityPlayer player) {
 		setMaxExperienceLevel(player, Math.max(player.experienceLevel, getMaxExperienceLevel(player)));
 	}
 	
+	/**
+	 * Sets the given max experience level for the given player
+	 * @param player The player to set the max experience level for
+	 * @param maxExperienceLevel The max experience level to set the player's to
+	 */
 	public static void setMaxExperienceLevel(EntityPlayer player, int maxExperienceLevel) {
-		((ExperienceCraftingPlayerProperties) player.getExtendedProperties("EXPERIENCE_CRAFTING_PROPERTIES")).maxExperienceLevel = maxExperienceLevel;
+		((ExperienceCraftingPlayerProperties) player.getExtendedProperties(PROPERTIES_NAME)).maxExperienceLevel = maxExperienceLevel;
 	}
 	
+	/**
+	 * Gets the max experience level for the given player
+	 * @param player The player to get the max experience level of
+	 * @return The max experience level of the given player
+	 */
 	public static int getMaxExperienceLevel(EntityPlayer player) {
 		if (player == null)
 			return 0;
 		if (player.getExtendedProperties("EXPERIENCE_CRAFTING_PROPERTIES") == null)
 			player.registerExtendedProperties("EXPERIENCE_CRAFTING_PROPERTIES", new ExperienceCraftingPlayerProperties());
-		return ((ExperienceCraftingPlayerProperties) player.getExtendedProperties("EXPERIENCE_CRAFTING_PROPERTIES")).maxExperienceLevel;
+		return ((ExperienceCraftingPlayerProperties) player.getExtendedProperties(PROPERTIES_NAME)).maxExperienceLevel;
 	}
 }
